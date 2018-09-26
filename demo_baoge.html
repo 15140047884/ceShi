@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.bootcss.com/vue/1.0.28/vue.min.js"></script>
+    <script src="https://cdn.bootcss.com/vue-resource/1.3.4/vue-resource.min.js"></script>
+    <title>Document</title>
+    <style>
+        .complete {text-decoration: line-through; color:red;}
+        .green {color:green; cursor: pointer;}
+        .red {color:red; cursor: pointer;}
+    </style>
+</head>
+<body>
+    <div class="container mt50">
+        <div class="row mt50">
+            <div class="col-md-12">
+                <form action="" method="post">
+                    <input type="text" name="name" v-model="name" class="form-control">
+                    <input type="submit" @click="addTask" class="btn btn-success form-control" value="确定">
+                </form>
+            </div>
+            <div class="col-md-12 mt30">
+                <h3 class="text-center">My Tasks (@{{ list.length }})</h3>
+                <ul class="list-group">
+                    <li class="list-group-item" :class="{ 'complete' : task.complete }" v-for="task in list | orderBy 'id' -1">
+                        @{{ task.name }}
+                        <i @click="completedTask(task)" v-if="!task.complete" class="fa fa-check pull-right green" aria-hidden="true"></i>
+                        <i @click="deleteTask(task)" v-if="task.complete" class="fa fa-times pull-right red" aria-hidden="true"></i>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el : '.row',
+            data : {
+                name : '',
+                list : []
+            },
+            created : function() { // ready
+                this.$http.get('http://discuss:8888/vue', function(data) {
+                    if (data.status === 'success') {
+                        this.list = data.task;
+                    }
+                });
+            },
+            methods : {
+                // 添加任务
+                addTask : function(e) {
+                    e.preventDefault();
+                    this.$http.post('http://discuss:8888/vue', {'name' : this.name}, function(response) {
+                        if (response.status === 'success') {
+                            this.list.push(response.task);
+                            this.name = '';
+                        }
+                    });
+                },
+                // 已完成任务
+                completedTask : function(task) {
+                    var vm = this;
+                    if (confirm('您确定要删除此任务吗?')) {
+                        vm.$http.put('http://discuss:8888/vue/' + task.id, function(response) {
+                            if (response.status === 'success') {
+                                // 先删除元素
+                                vm.list.$remove(task);
+                                vm.list.push(response.task);
+                            }
+                        });
+                    }
+                },
+                // 删除任务
+                deleteTask : function(task) {
+                    var vm = this;
+                    if (confirm('您确定要删除此任务吗?')) {
+                        vm.$http.delete('http://discuss:8888/vue/' + task.id, function(response) {
+                            if (response > 0) {
+                                vm.list.$remove(task);
+                            }
+                        });
+                    }
+                },
+            },
+        });
+    </script>
+</body>
+</html>

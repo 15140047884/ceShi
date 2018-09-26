@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+ <head>
+ <title>声明式渲染</title>
+ <meta charset="utf-8">
+ <script src="./vue.js"></script> 
+ <script src="./jquery.min.js"></script>
+ <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+ </head>
+ <body>
+ <!-- View -->
+ <div id="app">
+ 	{{message}}
+ 	{{name}}
+ 	{{age}}
+ 	{{text}}
+ </div>
+ <script>
+ // madel
+ var exampleData = {
+ 	message: 'Hello Vue!',
+ 	name:"小小名",
+ 	age:"11",
+ 	text:"ddd"
+ }
+
+
+ //ViewModel
+ var app = new Vue({
+ 	// el: '#app',
+ 	// data: exampleData
+  	el:'#app',
+    data:exampleData,
+    created:function(){
+    	var that=this;
+  		axios.get('json.txt')
+  		.then(function (response) {
+   	 		that.exampleData=response.data;
+   	 		console.log(that.exampleData);
+  		})
+    }
+})
+ </script>
+ </body>
+</html>
